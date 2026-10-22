@@ -192,7 +192,7 @@ function atualizarDificuldade() {
         if (coletouMoeda) {
             score += 30;
 scoreDisplay.textContent = score;
-
+s
 atualizarDificuldade();
 
             coin.style.visibility = 'hidden';

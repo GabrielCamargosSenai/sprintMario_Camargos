@@ -72,7 +72,13 @@ body {
     margin: 0 auto;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(#87ceeb, #e0f6ff);
+    background: linear-gradient(
+    180deg,
+    #090610 0%,
+    #17102b 45%,
+    #35205b 80%,
+    #7040a0 100%
+);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     cursor: pointer;
 }
@@ -173,7 +179,14 @@ body {
     justify-content: center;
     z-index: 100;
     padding: 20px;
+    background: linear-gradient(
+        180deg,
+        rgba(7, 5, 13, 0.82),
+        rgba(26, 16, 48, 0.94)
+    );
+    backdrop-filter: blur(5px);
 }
+
 
 .modal-overlay.active {
     display: flex;
@@ -181,14 +194,21 @@ body {
 }
 
 .modal-card {
-    background: #1f2438;
-    border: 4px solid #e52521;
-    border-radius: 16px;
+    background: linear-gradient(
+        145deg,
+        #1a1028,
+        #0c0913
+    );
+    border: 2px solid #543474;
+    border-radius: 6px;
     padding: 30px;
     width: 100%;
     max-width: 480px;
     text-align: center;
-    box-shadow: 0 0 30px rgba(229, 37, 33, 0.4), 0 15px 40px rgba(0, 0, 0, 0.7);
+
+    box-shadow:
+        0 0 25px rgba(112, 64, 160, 0.2),
+        0 15px 40px rgba(0, 0, 0, 0.7);
 }
 
 .modal-header {
@@ -197,10 +217,14 @@ body {
 
 .game-title {
     font-family: 'Press Start 2P', cursive;
-    color: #ffce00;
+    color: #c4a2ff;
     font-size: 20px;
     line-height: 1.5;
-    text-shadow: 3px 3px #e52521, 6px 6px #000000;
+
+    text-shadow:
+        0 0 8px rgba(112, 64, 160, 0.8),
+        3px 3px #090610;
+
     margin-bottom: 12px;
 }
 
@@ -269,15 +293,26 @@ body {
 }
 
 .btn-primary {
-    background: linear-gradient(180deg, #e52521 0%, #b81410 100%);
+    background: linear-gradient(
+        180deg,
+        #7040a0,
+        #40215f
+    );
     color: #ffffff;
-    border-bottom: 4px solid #7a0b08;
+    border: 1px solid #9567c5;
+    border-bottom: 4px solid #241333;
+    border-radius: 4px;
 }
 
 .btn-primary:hover {
-    background: linear-gradient(180deg, #ff3833 0%, #cf1915 100%);
+    background: linear-gradient(
+        180deg,
+        #8957ba,
+        #543078
+    );
+
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(229, 37, 33, 0.4);
+    box-shadow: 0 0 16px rgba(112, 64, 160, 0.4);
 }
 
 .btn-primary:active {

@@ -32,6 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameLoop = null;
     let scoreLoop = null;
 
+    // Configurações da dificuldade
+const velocidadeInicial = 2;
+const aumentoPorNivel = 0.05;
+const velocidadeMinima = 0.65;
+
+let nivelAtual = 0;
+
     // Recupera último nome utilizado caso exista
     const savedName = localStorage.getItem('mario_jump_player');
     if (savedName && playerInput) {
@@ -41,6 +48,49 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Inicia uma nova rodada
      */
+
+    // Controla a dificuldade do jogo
+function atualizarDificuldade() {
+    let novoNivel = 0;
+
+    // A partir de 100 pontos, começa a aumentar a dificuldade
+    if (score >= 100 && score < 5000) {
+        if (score < 1000) {
+            novoNivel = 1;
+        } else {
+            novoNivel = Math.floor(score / 1000) + 1;
+        }
+    }
+
+    // Depois de 5000 pontos, aumenta a cada 2500
+    if (score >= 5000) {
+        novoNivel = 6 + Math.floor((score - 5000) / 2500);
+    }
+
+    // Evita recalcular o mesmo nível
+    if (novoNivel === nivelAtual) return;
+
+    nivelAtual = novoNivel;
+
+    // Quanto menor a duração, mais rápido o cano
+    let novaDuracao =
+        velocidadeInicial - nivelAtual * aumentoPorNivel;
+
+    // A partir de 50000 pontos, o cano fica um pouco mais lento
+    if (score >= 50000) {
+        novaDuracao += 0.2;
+    }
+
+    // Limita a velocidade para não ficar rápida demais
+    novaDuracao = Math.max(
+        velocidadeMinima,
+        Math.min(velocidadeInicial, novaDuracao)
+    );
+
+    // Aplica a nova velocidade ao cano
+    pipe.style.animationDuration = `${novaDuracao}s`;
+}
+
     function startGame() {
         // Limpa loops anteriores se existirem
         clearInterval(gameLoop);
@@ -52,6 +102,9 @@ document.addEventListener('DOMContentLoaded', () => {
         isPlaying = true;
         score = 0;
         scoreDisplay.textContent = '0';
+        // Reinicia a dificuldade
+        nivelAtual = 0;
+        pipe.style.animationDuration = '';
         hudPlayerName.textContent = currentPlayer || 'Jogador';
 
         // Ativa animações CSS do jogo
@@ -59,11 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Loop de pontuação progressiva (1 ponto a cada 100ms)
         scoreLoop = setInterval(() => {
-            if (isPlaying) {
-                score += 1;
-                scoreDisplay.textContent = score;
-            }
-        }, 100);
+    if (isPlaying) {
+        score += 1;
+        scoreDisplay.textContent = score;
+
+        atualizarDificuldade();
+    }
+}, 100);
 
         // Loop de colisão
         gameLoop = setInterval(checkCollision, 10);
@@ -136,7 +191,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (coletouMoeda) {
             score += 30;
-            scoreDisplay.textContent = score;
+scoreDisplay.textContent = score;
+
+atualizarDificuldade();
 
             coin.style.visibility = 'hidden';
 

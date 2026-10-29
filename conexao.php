@@ -4,7 +4,7 @@
     $port = '3307';
     $user = 'root';
     $pass = '';
-    $dbname = 'mario_jump';
+    $dbname = 'cursedJump';
 
     try {
         $pdo = new PDO(

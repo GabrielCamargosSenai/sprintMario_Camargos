@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let gameLoop = null;
     let scoreLoop = null;
     let jumpTimer = null;   
-    let isJumping = false;
 
     // Configurações da dificuldade
     const velocidadeInicial = 3;
@@ -182,7 +181,7 @@ function atualizarDificuldade() {
 
     function resetElements() {
         isPaused = false;
-gameBoard.classList.remove('paused');
+        gameBoard.classList.remove('paused');
         // Reseta o obstáculo e as velocidades
         pipe.style.animation = '';
         pipe.style.left = '';
@@ -202,6 +201,7 @@ if (clouds) {
         clearTimeout(jumpTimer);
         jumpTimer = null;
         mario.classList.remove('jump');
+        isJumping = false;
 
         if (coin) {
     coin.style.visibility = 'visible';
@@ -218,20 +218,26 @@ if (clouds) {
 function finalizarPulo() {
     clearTimeout(jumpTimer);
     jumpTimer = null;
+
     mario.classList.remove('jump');
-    isJumping = false;
 }
 
 // Controla o pulo
 function jump() {
-    if (!isPlaying || isPaused || isJumping) return;
 
-    isJumping = true;
+    if (!isPlaying || isPaused) return;
+
+    // Só bloqueia outro pulo enquanto a animação estiver ativa
+    if (mario.classList.contains('jump')) return;
 
     clearTimeout(jumpTimer);
 
+    mario.style.animation = '';
     mario.classList.remove('jump');
+
+    // Força o navegador a reiniciar a animação
     void mario.offsetWidth;
+
     mario.classList.add('jump');
 
     if (jumpTip) {
@@ -239,10 +245,10 @@ function jump() {
     }
 
     // Segurança para liberar o próximo pulo
-    jumpTimer = setTimeout(finalizarPulo, 650);
+    jumpTimer = setTimeout(finalizarPulo, 700);
 }
 
-// Finaliza quando a animação CSS termina
+// Finaliza o pulo quando a animação CSS termina
 mario.addEventListener('animationend', (event) => {
     if (
         event.target === mario &&
@@ -297,7 +303,7 @@ if (
     // Pausa o jogo após a colisão
     isPaused = true;
     gameBoard.classList.add('paused');
-    mario.classList.remove('jump');
+    finalizarPulo();
     mario.style.visibility = 'hidden';
 
     // Game Over somente quando as vidas acabarem
@@ -397,7 +403,18 @@ if (
                 pontos: finalScore
             })
         })
-        .then(res => res.json())
+        .then(async res => {
+    const resposta = await res.text();
+
+    console.log('Status HTTP:', res.status);
+    console.log('Resposta do PHP:', resposta);
+
+    if (!res.ok) {
+        throw new Error(`Erro HTTP ${res.status}: ${resposta}`);
+    }
+
+    return JSON.parse(resposta);
+})
         .then(data => {
             if (data.status === 'success') {
                 saveStatusMsg.textContent = 'Pontuação registrada no banco!';
@@ -488,7 +505,7 @@ if (
 
         characterSelect.addEventListener('change', () => {
             personagemAtual = characterSelect.value;
-            mario.src = personagemAtual;
+            mario.src = personagemAtual;s
         });
     }
     // Submit do Formulário de Início (INICIAR JOGO)

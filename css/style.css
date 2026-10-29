@@ -154,7 +154,7 @@ body {
 }
 
 .jump {
-    animation: jump-animation 6s50ms ease-in-out;
+    animation: jump-animation 550ms ease-in-out;
 }
 
 @keyframes pipe-animation {

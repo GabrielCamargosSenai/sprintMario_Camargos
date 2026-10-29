@@ -49,7 +49,7 @@ try {
             <img src="assets/clouds.png" class="clouds" alt="Nuvens">
             <img src="assets/cavaleiro.gif" class="mario" alt="Cavaleiro">
             <img src="assets/moeda.png" class="coin" id="coin" alt="Moeda">
-            <img src="assets/pipe.png" class="pipe" alt="Cano">
+            <img src="assets/pilar-amaldicoado.png" class="pipe" alt="Pilar amaldiçoado">
             <span class="jump-tip" id="jump-tip">Pressione ESPAÇO ou clique para pular</span>
         </main>
     </div>

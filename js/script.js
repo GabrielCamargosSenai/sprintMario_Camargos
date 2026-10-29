@@ -111,14 +111,17 @@ function atualizarDificuldade() {
         gameBoard.classList.add('running');
 
         // Loop de pontuação progressiva (1 ponto a cada 100ms)
-        scoreLoop = setInterval(() => {
+        
+ // Loop de pontuação progressiva (1 ponto a cada 250ms)
+scoreLoop = setInterval(() => {
     if (isPlaying) {
         score += 1;
         scoreDisplay.textContent = score;
 
         atualizarDificuldade();
     }
-}, 100);
+}, 250);
+
 
         // Loop de colisão
         gameLoop = setInterval(checkCollision, 10);
@@ -131,8 +134,8 @@ function atualizarDificuldade() {
         pipe.style.left = '';
 
         // Reseta Mario
-        mario.src = 'assets/mario.gif';
-        mario.style.animation = '';
+        mario.src = 'assets/cavaleiro.gif';
+        mario.style.animation = ''; 
         mario.style.bottom = '0px';
         mario.style.width = '';
         mario.style.marginLeft = '';
@@ -192,7 +195,7 @@ function atualizarDificuldade() {
         if (coletouMoeda) {
             score += 30;
 scoreDisplay.textContent = score;
-s
+
 atualizarDificuldade();
 
             coin.style.visibility = 'hidden';

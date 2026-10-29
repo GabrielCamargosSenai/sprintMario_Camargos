@@ -2,12 +2,14 @@
  * Super Mario Jump - Lógica do Jogo e Integração com Ranking MySQL (Laragon)
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {   
     // Elementos do Jogo
     const mario = document.querySelector('.mario');
     const pipe = document.querySelector('.pipe');
     const gameBoard = document.getElementById('game-board');
     const coin = document.getElementById('coin');
+    const clouds = document.querySelector('.clouds');
+    const levelDisplay = document.getElementById('level-display');
     const hudPlayerName = document.getElementById('hud-player-name');
     const scoreDisplay = document.getElementById('score-display');
     const jumpTip = document.getElementById('jump-tip');
@@ -16,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const startModal = document.getElementById('start-modal');
     const startForm = document.getElementById('start-form');
     const playerInput = document.getElementById('player-input');
+    const characterSelect = document.getElementById('character-select');
     const btnViewRanking = document.getElementById('btn-view-ranking');
 
     const gameoverModal = document.getElementById('gameover-modal');
@@ -29,13 +32,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentPlayer = '';
     let score = 0;
     let isPlaying = false;
+    let isPaused = false;
+    let vidas = 3;
+    let collisionCooldown = false;
+    let personagemAtual = 'assets/cavaleiro.gif';
+
+    const livesDisplay = document.getElementById('lives-display');
+
     let gameLoop = null;
     let scoreLoop = null;
+    let jumpTimer = null;   
+    let isJumping = false;
 
     // Configurações da dificuldade
-const velocidadeInicial = 2;
-const aumentoPorNivel = 0.05;
-const velocidadeMinima = 0.65;
+    const velocidadeInicial = 3;
+    const aumentoPorNivel = 0.05;
+    const velocidadeMinima = 1;
 
 let nivelAtual = 0;
 
@@ -50,10 +62,24 @@ let nivelAtual = 0;
      */
 
     // Controla a dificuldade do jogo
+// Atualiza o nível mostrado na interface
+function atualizarNivelInterface() {
+    if (!levelDisplay) return;
+
+    if (score < 1000) {
+        levelDisplay.textContent = '1 - FÁCIL';
+    } else if (score < 3000) {
+        levelDisplay.textContent = '2 - MÉDIO';
+    } else {
+        levelDisplay.textContent = '3 - DIFÍCIL';
+    }
+}
+
+// Controla a dificuldade do jogo
 function atualizarDificuldade() {
     let novoNivel = 0;
 
-    // A partir de 100 pontos, começa a aumentar a dificuldade
+    // Primeiro aumento a partir de 100 pontos
     if (score >= 100 && score < 5000) {
         if (score < 1000) {
             novoNivel = 1;
@@ -67,41 +93,66 @@ function atualizarDificuldade() {
         novoNivel = 6 + Math.floor((score - 5000) / 2500);
     }
 
-    // Evita recalcular o mesmo nível
+    // Só recalcula quando a etapa de velocidade muda
     if (novoNivel === nivelAtual) return;
 
     nivelAtual = novoNivel;
 
-    // Quanto menor a duração, mais rápido o cano
+    // Quanto menor a duração, mais rápido o elemento se move
     let novaDuracao =
         velocidadeInicial - nivelAtual * aumentoPorNivel;
 
-    // A partir de 50000 pontos, o cano fica um pouco mais lento
+    // A partir de 50000 pontos, reduz um pouco a velocidade
     if (score >= 50000) {
         novaDuracao += 0.2;
     }
 
-    // Limita a velocidade para não ficar rápida demais
+    // Limita a velocidade para manter o jogo funcional
     novaDuracao = Math.max(
         velocidadeMinima,
         Math.min(velocidadeInicial, novaDuracao)
     );
 
-    // Aplica a nova velocidade ao cano
+    // Atualiza o obstáculo
     pipe.style.animationDuration = `${novaDuracao}s`;
+
+    // Acelera também as nuvens
+    if (clouds) {
+        clouds.style.animationDuration =
+            `${Math.max(7, 18 * novaDuracao / velocidadeInicial)}s`;
+    }
+
+    // Acelera a moeda sem deixá-la rápida demais
+    if (coin) {
+        coin.style.animationDuration =
+            `${Math.max(1.2, 3 * novaDuracao / velocidadeInicial)}s`;
+    }
+}
+
+    function atualizarVidas() {
+    if (!livesDisplay) return;
+
+    livesDisplay.textContent = '💜 '.repeat(vidas).trim();
 }
 
     function startGame() {
         // Limpa loops anteriores se existirem
         clearInterval(gameLoop);
         clearInterval(scoreLoop);
+    
 
         // Reseta posições e visuais
         resetElements();
 
         isPlaying = true;
+        isPaused = false;
         score = 0;
+        vidas = 3;
+        collisionCooldown = false;
+
         scoreDisplay.textContent = '0';
+        atualizarNivelInterface();
+        atualizarVidas();
         // Reinicia a dificuldade
         nivelAtual = 0;
         pipe.style.animationDuration = '';
@@ -113,14 +164,15 @@ function atualizarDificuldade() {
         // Loop de pontuação progressiva (1 ponto a cada 100ms)
         
  // Loop de pontuação progressiva (1 ponto a cada 250ms)
-scoreLoop = setInterval(() => {
-    if (isPlaying) {
-        score += 1;
-        scoreDisplay.textContent = score;
+        scoreLoop = setInterval(() => {
+            if (isPlaying) {
+                score += 1;
+                scoreDisplay.textContent = score;
 
-        atualizarDificuldade();
-    }
-}, 250);
+                atualizarNivelInterface();
+                atualizarDificuldade();
+            }
+        }, 100);
 
 
         // Loop de colisão
@@ -129,21 +181,32 @@ scoreLoop = setInterval(() => {
 
 
     function resetElements() {
-        // Reseta cano
+        isPaused = false;
+gameBoard.classList.remove('paused');
+        // Reseta o obstáculo e as velocidades
         pipe.style.animation = '';
         pipe.style.left = '';
+        pipe.style.animationDuration = '';
+
+if (clouds) {
+    clouds.style.animationDuration = '';
+}
 
         // Reseta Mario
-        mario.src = 'assets/cavaleiro.gif';
+        mario.src = personagemAtual;
+        mario.style.visibility = 'visible';
         mario.style.animation = ''; 
         mario.style.bottom = '0px';
         mario.style.width = '';
         mario.style.marginLeft = '';
+        clearTimeout(jumpTimer);
+        jumpTimer = null;
         mario.classList.remove('jump');
 
         if (coin) {
     coin.style.visibility = 'visible';
     coin.style.animation = '';
+    coin.style.animationDuration = '';
     coin.style.right = '-40px';
 }
 
@@ -152,38 +215,112 @@ scoreLoop = setInterval(() => {
         }
     }
 
-    function jump() {
-        if (!isPlaying) return;
-        if (mario.classList.contains('jump')) return;
+function finalizarPulo() {
+    clearTimeout(jumpTimer);
+    jumpTimer = null;
+    mario.classList.remove('jump');
+    isJumping = false;
+}
 
-        mario.classList.add('jump');
+// Controla o pulo
+function jump() {
+    if (!isPlaying || isPaused || isJumping) return;
 
-        if (jumpTip) {
-            jumpTip.style.opacity = '0';
-        }
+    isJumping = true;
 
-        setTimeout(() => {
-            mario.classList.remove('jump');
-        }, 500);
+    clearTimeout(jumpTimer);
+
+    mario.classList.remove('jump');
+    void mario.offsetWidth;
+    mario.classList.add('jump');
+
+    if (jumpTip) {
+        jumpTip.style.opacity = '0';
     }
 
+    // Segurança para liberar o próximo pulo
+    jumpTimer = setTimeout(finalizarPulo, 650);
+}
+
+// Finaliza quando a animação CSS termina
+mario.addEventListener('animationend', (event) => {
+    if (
+        event.target === mario &&
+        event.animationName === 'jump-animation'
+    ) {
+        finalizarPulo();
+    }
+});
+
     function checkCollision() {
-    if (!isPlaying) return;
+    if (!isPlaying || isPaused) return;
 
-    // Verifica se o Mario bateu no cano
-    const pipePosition = pipe.offsetLeft;
-    const marioPosition = +window
-        .getComputedStyle(mario)
-        .bottom.replace('px', '');
+    // Pega as posições reais dos elementos na tela
+    const marioRect = mario.getBoundingClientRect();
+    const pipeRect = pipe.getBoundingClientRect();
 
-    if (pipePosition <= 120 && pipePosition > 0 && marioPosition < 80) {
-        triggerGameOver(pipePosition, marioPosition);
+    const marioPosition = parseFloat(
+        window.getComputedStyle(mario).bottom
+    ) || 0;
+
+    // Hitbox menor do cavaleiro
+    const marioLeft = marioRect.left + marioRect.width * 0.35;
+    const marioRight = marioRect.right - marioRect.width * 0.35;
+
+    // Hitbox menor do pilar
+    const pipeLeft = pipeRect.left + pipeRect.width * 0.35;
+    const pipeRight = pipeRect.right - pipeRect.width * 0.35;
+
+    // Só existe colisão quando as áreas horizontais se encontram
+    const colisaoHorizontal =
+        marioRight > pipeLeft &&
+        marioLeft < pipeRight;
+
+    // Se o cavaleiro estiver baixo e tocar o pilar, encerra a partida
+    // Libera uma nova colisão quando o pilar sair da hitbox
+if (!colisaoHorizontal) {
+    collisionCooldown = false;
+}
+
+// Perde uma vida ao colidir com o pilar
+if (
+    colisaoHorizontal &&
+    marioPosition < 20 &&
+    !collisionCooldown &&
+    !isJumping
+) {
+    collisionCooldown = true;
+
+    vidas--;
+    atualizarVidas();
+
+    // Pausa o jogo após a colisão
+    isPaused = true;
+    gameBoard.classList.add('paused');
+    mario.classList.remove('jump');
+    mario.style.visibility = 'hidden';
+
+    // Game Over somente quando as vidas acabarem
+    if (vidas <= 0) {
+        mario.style.visibility = 'visible';
+        triggerGameOver(pipe.offsetLeft, marioPosition);
         return;
     }
 
-    // Verifica se o Mario pegou a moeda
+    // Retoma a partida após perder uma vida
+    setTimeout(() => {
+        if (isPlaying) {
+            mario.style.visibility = 'visible';
+            gameBoard.classList.remove('paused');
+            isPaused = false;
+        }
+    }, 800);
+
+    return;
+}
+
+    // Verifica se o cavaleiro coletou a moeda
     if (coin && coin.style.visibility !== 'hidden') {
-        const marioRect = mario.getBoundingClientRect();
         const coinRect = coin.getBoundingClientRect();
 
         const coletouMoeda =
@@ -193,15 +330,16 @@ scoreLoop = setInterval(() => {
             marioRect.bottom > coinRect.top;
 
         if (coletouMoeda) {
-            score += 30;
-scoreDisplay.textContent = score;
+            score += 10;
+            scoreDisplay.textContent = score;
 
-atualizarDificuldade();
+            atualizarNivelInterface();
+            atualizarDificuldade();
 
             coin.style.visibility = 'hidden';
 
             setTimeout(() => {
-                if (isPlaying) {
+                if (isPlaying && !isPaused) { 
                     coin.style.animation = 'none';
                     coin.style.right = '-40px';
                     coin.style.visibility = 'visible';
@@ -216,6 +354,7 @@ atualizarDificuldade();
 
     function triggerGameOver(pipePosition, marioPosition) {
         isPlaying = false;
+        gameBoard.classList.remove('paused');   
         clearInterval(gameLoop);
         clearInterval(scoreLoop);
 
@@ -229,7 +368,8 @@ atualizarDificuldade();
         // Congela o Mario na altura exata e muda para a imagem de Game Over
         mario.style.animation = 'none';
         mario.style.bottom = `${marioPosition}px`;
-        mario.src = 'assets/game-over.png';
+        mario.src = 'assets/cavaleiro.gif';
+        mario.style.visibility = 'visible';
         mario.style.width = '75px';
         mario.style.marginLeft = '50px';
 
@@ -342,6 +482,15 @@ atualizarDificuldade();
             .replace(/'/g, '&#039;');
     }
 
+    // Seleção do personagem
+    if (characterSelect) {
+        personagemAtual = characterSelect.value;
+
+        characterSelect.addEventListener('change', () => {
+            personagemAtual = characterSelect.value;
+            mario.src = personagemAtual;
+        });
+    }
     // Submit do Formulário de Início (INICIAR JOGO)
     startForm.addEventListener('submit', (e) => {
         e.preventDefault(); // Impede o recarregamento da página
@@ -354,6 +503,9 @@ atualizarDificuldade();
 
         currentPlayer = nameValue;
         localStorage.setItem('mario_jump_player', currentPlayer);
+        personagemAtual = characterSelect
+        ? characterSelect.value
+        : 'assets/cavaleiro.gif';
 
         // Fecha tela de início e começa o jogo
         startModal.classList.remove('active');
@@ -396,6 +548,12 @@ atualizarDificuldade();
                 e.preventDefault();
                 jump();
             }
+        }
+    });
+    // Controle do pulo por clique
+    gameBoard.addEventListener('click', () => {
+        if (isPlaying) {
+            jump();
         }
     });
 });

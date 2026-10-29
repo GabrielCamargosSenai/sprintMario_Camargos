@@ -23,7 +23,7 @@ try {
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mario Jump - Jogo com Ranking MySQL</title>
+    <title>Cavaleiro Amaldiçoado | Dark Fantasy Runner</title>
     
     <link rel="stylesheet" href="css/style.css">
 
@@ -42,11 +42,19 @@ try {
                 <span class="label">PONTOS:</span>
                 <span class="value" id="score-display">0</span>
             </div>
+            <div class="level-info">
+                <span class="label">NÍVEL:</span>
+                <span class="value" id="level-display">1 - FÁCIL</span>
+            </div>
+            <div class="lives-info">
+                <span class="label">VIDAS:</span>
+                <span class="value" id="lives-display">💜 💜 💜</span>
+            </div>
         </header>
 
         
         <main class="game-board" id="game-board">
-            <img src="assets/clouds.png" class="clouds" alt="Nuvens">
+            <img src="assets/nuvens-dark-fantasy.png" class="clouds" alt="Nuvens sombrias roxas">
             <img src="assets/cavaleiro.gif" class="mario" alt="Cavaleiro">
             <img src="assets/moeda.png" class="coin" id="coin" alt="Moeda">
             <img src="assets/pilar-amaldicoado.png" class="pipe" alt="Pilar amaldiçoado">
@@ -58,8 +66,8 @@ try {
     <div class="modal-overlay active" id="start-modal">
         <div class="modal-card">
             <div class="modal-header">
-                <h1 class="game-title">MARIO JUMP</h1>
-                <p class="game-subtitle">Corra, desvie dos canos e dispute o topo do ranking!</p>
+                <h1 class="game-title">CERSED KNIGHT</h1>
+                <p class="game-subtitle">Atravesse as terras amaldiçoadas, desvie dos pilares e colete moedas arcanas.</p>
             </div>
 
             <form class="start-form" id="start-form">
@@ -75,7 +83,19 @@ try {
                         autofocus
                     >
                 </div>
+                <div class="input-group">
+                    <label for="character-select">ESCOLHA SEU PERSONAGEM:</label>
 
+                    <select id="character-select">
+                        <option value="assets/cavaleiro.gif">
+                            Cavaleiro Amaldiçoado
+                        </option>
+
+                        <option value="assets/cavaleiro2.gif">
+                            Cavaleiro Medieval
+                        </option>
+                    </select>
+                </div>
                 <div class="modal-actions">
                     <button type="submit" class="btn btn-primary" id="btn-start">INICIAR JOGO</button>
                     <button type="button" class="btn btn-secondary" id="btn-view-ranking">VER RANKING</button>

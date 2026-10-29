@@ -41,7 +41,9 @@ body {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-.player-info, .score-info {
+.player-info,
+.score-info,
+.level-info {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -85,26 +87,16 @@ body {
 
 
 .game-board.running {
-    background-size: auto 100%;
-    animation: mover-nevoa 35s linear infinite;
+    background-size: cover;
+    background-position: center;
+    animation: none;
 }
 
-@keyframes mover-nevoa {
-    from {
-        background-position: 0 center;
-    }
 
-    to {
-        background-position: -300px center;
-    }
-}
 
 
 
 /* Elementos do Jogo */
-
-
-
 
 .pipe {
     position: absolute;
@@ -119,18 +111,24 @@ body {
 
 
 .mario {
-    width: 150px;
     position: absolute;
+    width: 120px;
     bottom: 0;
     left: 20px;
     z-index: 10;
+    object-fit: contain;
+    image-rendering: pixelated;
 }
 
 .clouds {
     position: absolute;
-    width: 550px;
-    top: 30px;
-    right: -550px;
+    width: 300px;
+    height: auto;
+    top: 60px;
+    right: -300px;
+    z-index: 1;
+    pointer-events: none;
+    image-rendering: pixelated;
 }
 
 /* Dica de pulo na tela */
@@ -148,7 +146,7 @@ body {
 
 /* Animações ativas durante o jogo */
 .game-board.running .pipe {
-    animation: pipe-animation 1.6s infinite linear;
+    animation: pipe-animation 3s infinite linear;
 }
 
 .game-board.running .clouds {
@@ -156,7 +154,7 @@ body {
 }
 
 .jump {
-    animation: jump-animation 500ms ease-out;
+    animation: jump-animation 6s50ms ease-in-out;
 }
 
 @keyframes pipe-animation {
@@ -172,12 +170,11 @@ body {
     0% {
         bottom: 0;
     }
+
     40% {
-        bottom: 180px;
+        bottom: 190px;
     }
-    50% {
-        bottom: 180px;
-    }
+
     100% {
         bottom: 0;
     }
@@ -280,7 +277,8 @@ body {
     color: #ffffff;
 }
 
-.input-group input {
+.input-group input,
+.input-group select {
     width: 100%;
     padding: 14px 18px;
     border-radius: 8px;
@@ -294,7 +292,8 @@ body {
     transition: all 0.25s;
 }
 
-.input-group input:focus {
+.input-group input:focus,
+.input-group select:focus {
     border-color: #ffcc00;
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
 }
@@ -525,6 +524,8 @@ body {
     }
     .hud-bar {
         padding: 10px 14px;
+        gap: 18px;
+        flex-wrap: wrap;
     }
     .label {
         font-size: 9px;
@@ -565,3 +566,18 @@ body {
     }
 }
 
+.lives-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#lives-display {
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
+.game-board.paused,
+.game-board.paused * {
+    animation-play-state: paused !important;
+}
